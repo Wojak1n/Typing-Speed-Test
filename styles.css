@@ -1064,6 +1064,10 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    background: transparent !important;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .color-group label {
@@ -1081,10 +1085,28 @@ body {
 .color-input-group input[type="color"] {
     width: 50px;
     height: 40px;
-    border: none;
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     cursor: pointer;
-    background: none;
+    padding: 0;
+    outline: none;
+    transition: var(--transition);
+}
+
+.color-input-group input[type="color"]:hover {
+    border-color: var(--accent-color);
+    transform: scale(1.05);
+}
+
+.color-input-group input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+}
+
+.color-input-group input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
 }
 
 .color-input-group input[type="text"] {
@@ -1927,24 +1949,61 @@ input:checked + .toggle-slider:before {
     .color-panel-content {
         padding: 1rem;
         margin: 0.5rem;
+        max-height: 95vh;
+    }
+
+    .color-controls {
+        gap: 0.75rem;
+    }
+
+    .color-group {
+        gap: 0.25rem;
+    }
+
+    .color-input-group {
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: stretch;
+    }
+
+    .color-swatch {
+        width: 100%;
+        height: 35px;
+        margin-bottom: 0.25rem;
+    }
+
+    .color-input-group input[type="color"] {
+        width: 100%;
+        height: 35px;
+    }
+
+    .drop-zone {
+        font-size: 0.7rem;
+        padding: 0.5rem;
     }
 
     .preset-buttons {
         grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .preset-btn {
+        padding: 0.5rem;
+        font-size: 0.7rem;
+    }
+
+    .color-actions {
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     .palette-colors {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 0.25rem;
     }
 
     .palette-color {
         width: 35px;
-        height: 35px;
-    }
-
-    .color-swatch {
-        width: 40px;
         height: 35px;
     }
 

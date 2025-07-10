@@ -219,31 +219,50 @@ class TypingTest {
             }
         }, 100);
 
-        // Color customization events
-        document.getElementById('colorToggle').addEventListener('click', () => this.openColorPanel());
-        document.getElementById('closeColorPanel').addEventListener('click', () => this.closeColorPanel());
-        document.getElementById('resetColors').addEventListener('click', () => this.resetColors());
-        document.getElementById('saveColors').addEventListener('click', () => this.saveColors());
+        // Color customization events - use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            const colorToggle = document.getElementById('colorToggle');
+            const closeColorPanel = document.getElementById('closeColorPanel');
+            const resetColors = document.getElementById('resetColors');
+            const saveColors = document.getElementById('saveColors');
 
-        // Color input events
-        ['primary', 'secondary', 'accent', 'success', 'error'].forEach(colorType => {
-            const colorInput = document.getElementById(colorType + 'Color');
-            const textInput = document.getElementById(colorType + 'ColorText');
+            if (colorToggle) {
+                colorToggle.addEventListener('click', () => this.openColorPanel());
+            }
+            if (closeColorPanel) {
+                closeColorPanel.addEventListener('click', () => this.closeColorPanel());
+            }
+            if (resetColors) {
+                resetColors.addEventListener('click', () => this.resetColors());
+            }
+            if (saveColors) {
+                saveColors.addEventListener('click', () => this.saveColors());
+            }
 
-            colorInput.addEventListener('input', (e) => this.updateColor(colorType, e.target.value));
-            textInput.addEventListener('input', (e) => this.updateColorFromText(colorType, e.target.value));
-        });
+            // Color input events
+            ['primary', 'secondary', 'accent', 'success', 'error'].forEach(colorType => {
+                const colorInput = document.getElementById(colorType + 'Color');
+                const textInput = document.getElementById(colorType + 'ColorText');
 
-        // Preset buttons
-        document.querySelectorAll('.preset-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const preset = e.currentTarget.dataset.preset;
-                this.applyColorPreset(preset);
+                if (colorInput) {
+                    colorInput.addEventListener('input', (e) => this.updateColor(colorType, e.target.value));
+                }
+                if (textInput) {
+                    textInput.addEventListener('input', (e) => this.updateColorFromText(colorType, e.target.value));
+                }
             });
-        });
 
-        // Drag and drop events
-        this.initializeDragAndDrop();
+            // Preset buttons
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const preset = e.currentTarget.dataset.preset;
+                    this.applyColorPreset(preset);
+                });
+            });
+
+            // Drag and drop events
+            this.initializeDragAndDrop();
+        }, 150);
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -1833,107 +1852,189 @@ class TypingTest {
 
     // Color Customization Methods
     openColorPanel() {
-        const colorPanel = document.getElementById('colorPanel');
-        if (colorPanel) {
-            colorPanel.classList.remove('hidden');
-            this.loadCurrentColors();
+        try {
+            const colorPanel = document.getElementById('colorPanel');
+            if (colorPanel) {
+                colorPanel.classList.remove('hidden');
+
+                // Reinitialize drag and drop if needed
+                setTimeout(() => {
+                    this.initializeDragAndDrop();
+                }, 100);
+
+                this.loadCurrentColors();
+            } else {
+                console.warn('Color panel element not found');
+            }
+        } catch (error) {
+            console.error('Error opening color panel:', error);
         }
     }
 
     closeColorPanel() {
-        const colorPanel = document.getElementById('colorPanel');
-        if (colorPanel) {
-            colorPanel.classList.add('hidden');
+        try {
+            const colorPanel = document.getElementById('colorPanel');
+            if (colorPanel) {
+                colorPanel.classList.add('hidden');
+            } else {
+                console.warn('Color panel element not found');
+            }
+        } catch (error) {
+            console.error('Error closing color panel:', error);
         }
     }
 
     loadCurrentColors() {
-        const savedColors = this.getSavedColors();
+        try {
+            const savedColors = this.getSavedColors();
 
-        ['primary', 'secondary', 'accent', 'success', 'error'].forEach(colorType => {
-            const color = savedColors[colorType] || this.colorPresets.default[colorType];
-            document.getElementById(colorType + 'Color').value = color;
-            document.getElementById(colorType + 'ColorText').value = color;
-            this.updateColorSwatch(colorType, color);
-        });
+            ['primary', 'secondary', 'accent', 'success', 'error'].forEach(colorType => {
+                const color = savedColors[colorType] || this.colorPresets.default[colorType];
+
+                // Update color input
+                const colorInput = document.getElementById(colorType + 'Color');
+                if (colorInput) {
+                    colorInput.value = color;
+                }
+
+                // Update text input
+                const textInput = document.getElementById(colorType + 'ColorText');
+                if (textInput) {
+                    textInput.value = color;
+                }
+
+                // Update swatch
+                this.updateColorSwatch(colorType, color);
+            });
+        } catch (error) {
+            console.warn('Error loading current colors:', error);
+        }
     }
 
     updateColor(colorType, color) {
         // Validate hex color
         if (!/^#[0-9A-F]{6}$/i.test(color)) return;
 
-        // Update CSS custom property
-        document.documentElement.style.setProperty(`--${colorType}-color`, color);
+        try {
+            // Update CSS custom property
+            document.documentElement.style.setProperty(`--${colorType}-color`, color);
 
-        // Update text input
-        document.getElementById(colorType + 'ColorText').value = color;
+            // Update text input
+            const textInput = document.getElementById(colorType + 'ColorText');
+            if (textInput) {
+                textInput.value = color;
+            }
 
-        // Save to localStorage
-        this.saveColorToStorage(colorType, color);
+            // Update color swatch
+            this.updateColorSwatch(colorType, color);
+
+            // Save to localStorage
+            this.saveColorToStorage(colorType, color);
+        } catch (error) {
+            console.warn('Error updating color:', error);
+        }
     }
 
     updateColorFromText(colorType, color) {
         // Validate hex color
         if (!/^#[0-9A-F]{6}$/i.test(color)) return;
 
-        // Update color input
-        document.getElementById(colorType + 'Color').value = color;
+        try {
+            // Update color input
+            const colorInput = document.getElementById(colorType + 'Color');
+            if (colorInput) {
+                colorInput.value = color;
+            }
 
-        // Update CSS custom property
-        document.documentElement.style.setProperty(`--${colorType}-color`, color);
-
-        // Save to localStorage
-        this.saveColorToStorage(colorType, color);
-    }
-
-    applyColorPreset(presetName) {
-        const preset = this.colorPresets[presetName];
-        if (!preset) return;
-
-        Object.keys(preset).forEach(colorType => {
-            const color = preset[colorType];
-
-            // Update inputs
-            document.getElementById(colorType + 'Color').value = color;
-            document.getElementById(colorType + 'ColorText').value = color;
-
-            // Update CSS
+            // Update CSS custom property
             document.documentElement.style.setProperty(`--${colorType}-color`, color);
 
-            // Update swatch
+            // Update color swatch
             this.updateColorSwatch(colorType, color);
 
             // Save to localStorage
             this.saveColorToStorage(colorType, color);
-        });
+        } catch (error) {
+            console.warn('Error updating color from text:', error);
+        }
+    }
 
-        this.playSound('correct');
+    applyColorPreset(presetName) {
+        const preset = this.colorPresets[presetName];
+        if (!preset) {
+            console.warn('Color preset not found:', presetName);
+            return;
+        }
+
+        try {
+            Object.keys(preset).forEach(colorType => {
+                const color = preset[colorType];
+
+                // Update color input
+                const colorInput = document.getElementById(colorType + 'Color');
+                if (colorInput) {
+                    colorInput.value = color;
+                }
+
+                // Update text input
+                const textInput = document.getElementById(colorType + 'ColorText');
+                if (textInput) {
+                    textInput.value = color;
+                }
+
+                // Update CSS
+                document.documentElement.style.setProperty(`--${colorType}-color`, color);
+
+                // Update swatch
+                this.updateColorSwatch(colorType, color);
+
+                // Save to localStorage
+                this.saveColorToStorage(colorType, color);
+            });
+
+            this.playSound('correct');
+        } catch (error) {
+            console.error('Error applying color preset:', error);
+        }
     }
 
     resetColors() {
-        this.applyColorPreset('default');
-        this.playSound('start');
+        try {
+            this.applyColorPreset('default');
+            this.playSound('start');
+        } catch (error) {
+            console.error('Error resetting colors:', error);
+        }
     }
 
     saveColors() {
-        const currentColors = {};
-        ['primary', 'secondary', 'accent', 'success', 'error'].forEach(colorType => {
-            currentColors[colorType] = document.getElementById(colorType + 'Color').value;
-        });
+        try {
+            const currentColors = {};
+            ['primary', 'secondary', 'accent', 'success', 'error'].forEach(colorType => {
+                const colorInput = document.getElementById(colorType + 'Color');
+                if (colorInput) {
+                    currentColors[colorType] = colorInput.value;
+                }
+            });
 
-        localStorage.setItem('typingTestColors', JSON.stringify(currentColors));
-        this.playSound('complete');
+            localStorage.setItem('typingTestColors', JSON.stringify(currentColors));
+            this.playSound('complete');
 
-        // Show confirmation
-        const saveBtn = document.getElementById('saveColors');
-        const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-        saveBtn.disabled = true;
+            // Show confirmation
+            const saveBtn = document.getElementById('saveColors');
+            if (saveBtn) {
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                saveBtn.disabled = true;
 
-        setTimeout(() => {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-        }, 2000);
+                setTimeout(() => {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                }, 2000);
+            }
+        } catch (error) {
+            console.error('Error saving colors:', error);
+        }
     }
 
     saveColorToStorage(colorType, color) {
@@ -1963,32 +2064,48 @@ class TypingTest {
 
     // Drag and Drop Methods
     initializeDragAndDrop() {
-        // Initialize drag events for color swatches
-        document.querySelectorAll('.color-swatch').forEach(swatch => {
-            swatch.addEventListener('dragstart', (e) => this.handleDragStart(e));
-            swatch.addEventListener('dragend', (e) => this.handleDragEnd(e));
-        });
+        try {
+            // Initialize drag events for color swatches
+            const colorSwatches = document.querySelectorAll('.color-swatch');
+            if (colorSwatches.length > 0) {
+                colorSwatches.forEach(swatch => {
+                    swatch.addEventListener('dragstart', (e) => this.handleDragStart(e));
+                    swatch.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                });
+            }
 
-        // Initialize drag events for palette colors
-        document.querySelectorAll('.palette-color').forEach(color => {
-            color.addEventListener('dragstart', (e) => this.handlePaletteDragStart(e));
-            color.addEventListener('dragend', (e) => this.handleDragEnd(e));
-        });
+            // Initialize drag events for palette colors
+            const paletteColors = document.querySelectorAll('.palette-color');
+            if (paletteColors.length > 0) {
+                paletteColors.forEach(color => {
+                    color.addEventListener('dragstart', (e) => this.handlePaletteDragStart(e));
+                    color.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                });
+            }
 
-        // Initialize drop events for color groups and drop zones
-        document.querySelectorAll('.color-group').forEach(group => {
-            group.addEventListener('dragover', (e) => this.handleDragOver(e));
-            group.addEventListener('dragenter', (e) => this.handleDragEnter(e));
-            group.addEventListener('dragleave', (e) => this.handleDragLeave(e));
-            group.addEventListener('drop', (e) => this.handleDrop(e));
-        });
+            // Initialize drop events for color groups and drop zones
+            const colorGroups = document.querySelectorAll('.color-group');
+            if (colorGroups.length > 0) {
+                colorGroups.forEach(group => {
+                    group.addEventListener('dragover', (e) => this.handleDragOver(e));
+                    group.addEventListener('dragenter', (e) => this.handleDragEnter(e));
+                    group.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                    group.addEventListener('drop', (e) => this.handleDrop(e));
+                });
+            }
 
-        document.querySelectorAll('.drop-zone').forEach(zone => {
-            zone.addEventListener('dragover', (e) => this.handleDragOver(e));
-            zone.addEventListener('dragenter', (e) => this.handleDragEnter(e));
-            zone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
-            zone.addEventListener('drop', (e) => this.handleDrop(e));
-        });
+            const dropZones = document.querySelectorAll('.drop-zone');
+            if (dropZones.length > 0) {
+                dropZones.forEach(zone => {
+                    zone.addEventListener('dragover', (e) => this.handleDragOver(e));
+                    zone.addEventListener('dragenter', (e) => this.handleDragEnter(e));
+                    zone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                    zone.addEventListener('drop', (e) => this.handleDrop(e));
+                });
+            }
+        } catch (error) {
+            console.warn('Error initializing drag and drop:', error);
+        }
     }
 
     handleDragStart(e) {
@@ -2089,7 +2206,16 @@ class TypingTest {
 
         try {
             const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (!dragData) {
+                console.warn('No drag data found');
+                return;
+            }
+
             const targetType = dropZone ? dropZone.dataset.target : colorGroup.dataset.colorType;
+            if (!targetType) {
+                console.warn('No target type found');
+                return;
+            }
 
             if (dragData.type === 'color-swap') {
                 this.swapColors(dragData.sourceType, targetType);
@@ -2111,25 +2237,43 @@ class TypingTest {
     swapColors(sourceType, targetType) {
         if (sourceType === targetType) return;
 
-        const sourceColor = document.getElementById(sourceType + 'Color').value;
-        const targetColor = document.getElementById(targetType + 'Color').value;
+        try {
+            const sourceColorInput = document.getElementById(sourceType + 'Color');
+            const targetColorInput = document.getElementById(targetType + 'Color');
 
-        // Swap the colors
-        this.updateColor(sourceType, targetColor);
-        this.updateColor(targetType, sourceColor);
+            if (!sourceColorInput || !targetColorInput) {
+                console.warn('Color inputs not found for swap');
+                return;
+            }
 
-        // Update swatches
-        this.updateColorSwatch(sourceType, targetColor);
-        this.updateColorSwatch(targetType, sourceColor);
+            const sourceColor = sourceColorInput.value;
+            const targetColor = targetColorInput.value;
+
+            // Swap the colors
+            this.updateColor(sourceType, targetColor);
+            this.updateColor(targetType, sourceColor);
+
+            // Update swatches
+            this.updateColorSwatch(sourceType, targetColor);
+            this.updateColorSwatch(targetType, sourceColor);
+        } catch (error) {
+            console.warn('Error swapping colors:', error);
+        }
     }
 
     applyColorToTarget(color, targetType) {
-        this.updateColor(targetType, color);
-        this.updateColorSwatch(targetType, color);
+        if (!color || !targetType) return;
+
+        try {
+            this.updateColor(targetType, color);
+            this.updateColorSwatch(targetType, color);
+        } catch (error) {
+            console.warn('Error applying color to target:', error);
+        }
     }
 
     updateColorSwatch(colorType, color) {
-        const swatch = document.querySelector(`[data-color-type="${colorType}"]`);
+        const swatch = document.querySelector(`.color-swatch[data-color-type="${colorType}"]`);
         if (swatch) {
             swatch.style.backgroundColor = color;
         }
