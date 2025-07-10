@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Typing Speed Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">
+                <i class="fas fa-keyboard"></i>
+                Ultimate Typing Test
+            </h1>
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="classic">
+                    <i class="fas fa-clock"></i>
+                    Classic Test
+                </button>
+                <button class="mode-btn" data-mode="game">
+                    <i class="fas fa-gamepad"></i>
+                    Mini Game
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="wpm">0</div>
+                    <div class="stat-label">WPM</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="accuracy">100%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-stopwatch"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="timer">60</div>
+                    <div class="stat-label">Time Left</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="errors">0</div>
+                    <div class="stat-label">Errors</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0% Complete</div>
+        </div>
+
+        <!-- Classic Test Mode -->
+        <div class="test-container" id="classicMode">
+            <div class="test-settings">
+                <div class="setting-group">
+                    <label for="timeSelect">Test Duration:</label>
+                    <select id="timeSelect">
+                        <option value="15">15 seconds</option>
+                        <option value="30">30 seconds</option>
+                        <option value="60" selected>1 minute</option>
+                        <option value="120">2 minutes</option>
+                        <option value="300">5 minutes</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="difficultySelect">Difficulty:</label>
+                    <select id="difficultySelect">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="text-display" id="textDisplay">
+                Click "Start Test" to begin typing...
+            </div>
+
+            <div class="input-container">
+                <textarea 
+                    id="textInput" 
+                    placeholder="Start typing here..."
+                    disabled
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                ></textarea>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn">
+                    <i class="fas fa-play"></i>
+                    Start Test
+                </button>
+                <button class="btn btn-secondary" id="resetBtn">
+                    <i class="fas fa-redo"></i>
+                    Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Mini Game Mode -->
+        <div class="game-container hidden" id="gameMode">
+            <div class="game-header">
+                <div class="game-stats">
+                    <div class="game-stat">
+                        <i class="fas fa-star"></i>
+                        <span id="gameScore">0</span>
+                    </div>
+                    <div class="game-stat">
+                        <i class="fas fa-heart"></i>
+                        <span id="gameLives">3</span>
+                    </div>
+                    <div class="game-stat">
+                        <i class="fas fa-level-up-alt"></i>
+                        <span id="gameLevel">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <div class="falling-words" id="fallingWords"></div>
+                <div class="game-input-container">
+                    <input 
+                        type="text" 
+                        id="gameInput" 
+                        placeholder="Type the falling words..."
+                        disabled
+                        spellcheck="false"
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn btn-primary" id="startGameBtn">
+                    <i class="fas fa-play"></i>
+                    Start Game
+                </button>
+                <button class="btn btn-secondary" id="pauseGameBtn" disabled>
+                    <i class="fas fa-pause"></i>
+                    Pause
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Modal -->
+        <div class="modal hidden" id="resultsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Test Complete!</h2>
+                    <button class="close-btn" id="closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="result-stats">
+                        <div class="result-stat">
+                            <div class="result-value" id="finalWPM">0</div>
+                            <div class="result-label">Words Per Minute</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-value" id="finalAccuracy">0%</div>
+                            <div class="result-label">Accuracy</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-value" id="finalErrors">0</div>
+                            <div class="result-label">Total Errors</div>
+                        </div>
+                    </div>
+                    <div class="performance-rating" id="performanceRating">
+                        <i class="fas fa-medal"></i>
+                        <span>Great Job!</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="tryAgainBtn">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </button>
+                    <button class="btn btn-secondary" id="shareBtn">
+                        <i class="fas fa-share"></i>
+                        Share Results
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Customization Panel -->
+        <div class="color-panel hidden" id="colorPanel">
+            <div class="color-panel-content">
+                <div class="color-panel-header">
+                    <h3>
+                        <i class="fas fa-palette"></i>
+                        Customize Colors
+                    </h3>
+                    <button class="close-btn" id="closeColorPanel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="color-controls">
+                    <div class="color-group" data-color-type="primary">
+                        <label for="primaryColor">Primary Color</label>
+                        <div class="color-input-group">
+                            <div class="color-swatch"
+                                 draggable="true"
+                                 data-color-type="primary"
+                                 style="background-color: #667eea;"
+                                 title="Drag to swap colors">
+                            </div>
+                            <input type="color" id="primaryColor" value="#667eea">
+                            <input type="text" id="primaryColorText" value="#667eea">
+                        </div>
+                        <div class="drop-zone" data-target="primary">Drop color here</div>
+                    </div>
+
+                    <div class="color-group" data-color-type="secondary">
+                        <label for="secondaryColor">Secondary Color</label>
+                        <div class="color-input-group">
+                            <div class="color-swatch"
+                                 draggable="true"
+                                 data-color-type="secondary"
+                                 style="background-color: #764ba2;"
+                                 title="Drag to swap colors">
+                            </div>
+                            <input type="color" id="secondaryColor" value="#764ba2">
+                            <input type="text" id="secondaryColorText" value="#764ba2">
+                        </div>
+                        <div class="drop-zone" data-target="secondary">Drop color here</div>
+                    </div>
+
+                    <div class="color-group" data-color-type="accent">
+                        <label for="accentColor">Accent Color</label>
+                        <div class="color-input-group">
+                            <div class="color-swatch"
+                                 draggable="true"
+                                 data-color-type="accent"
+                                 style="background-color: #f093fb;"
+                                 title="Drag to swap colors">
+                            </div>
+                            <input type="color" id="accentColor" value="#f093fb">
+                            <input type="text" id="accentColorText" value="#f093fb">
+                        </div>
+                        <div class="drop-zone" data-target="accent">Drop color here</div>
+                    </div>
+
+                    <div class="color-group" data-color-type="success">
+                        <label for="successColor">Success Color</label>
+                        <div class="color-input-group">
+                            <div class="color-swatch"
+                                 draggable="true"
+                                 data-color-type="success"
+                                 style="background-color: #4ade80;"
+                                 title="Drag to swap colors">
+                            </div>
+                            <input type="color" id="successColor" value="#4ade80">
+                            <input type="text" id="successColorText" value="#4ade80">
+                        </div>
+                        <div class="drop-zone" data-target="success">Drop color here</div>
+                    </div>
+
+                    <div class="color-group" data-color-type="error">
+                        <label for="errorColor">Error Color</label>
+                        <div class="color-input-group">
+                            <div class="color-swatch"
+                                 draggable="true"
+                                 data-color-type="error"
+                                 style="background-color: #f87171;"
+                                 title="Drag to swap colors">
+                            </div>
+                            <input type="color" id="errorColor" value="#f87171">
+                            <input type="text" id="errorColorText" value="#f87171">
+                        </div>
+                        <div class="drop-zone" data-target="error">Drop color here</div>
+                    </div>
+                </div>
+
+                <!-- Color Palette for Dragging -->
+                <div class="color-palette">
+                    <h4>
+                        <i class="fas fa-palette"></i>
+                        Color Palette
+                        <span class="drag-hint">Drag colors to swap or apply</span>
+                    </h4>
+                    <div class="palette-colors">
+                        <div class="palette-color" draggable="true" style="background-color: #ff6b6b;" data-color="#ff6b6b" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #4ecdc4;" data-color="#4ecdc4" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #45b7d1;" data-color="#45b7d1" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #96ceb4;" data-color="#96ceb4" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #ffeaa7;" data-color="#ffeaa7" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #dda0dd;" data-color="#dda0dd" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #98d8c8;" data-color="#98d8c8" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #f7dc6f;" data-color="#f7dc6f" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #bb8fce;" data-color="#bb8fce" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #85c1e9;" data-color="#85c1e9" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #f8c471;" data-color="#f8c471" title="Drag to apply"></div>
+                        <div class="palette-color" draggable="true" style="background-color: #82e0aa;" data-color="#82e0aa" title="Drag to apply"></div>
+                    </div>
+                </div>
+
+                <div class="color-presets">
+                    <h4>Color Themes</h4>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-preset="default">
+                            <div class="preset-colors">
+                                <span style="background: #667eea;"></span>
+                                <span style="background: #764ba2;"></span>
+                                <span style="background: #f093fb;"></span>
+                            </div>
+                            <span>Default</span>
+                        </button>
+
+                        <button class="preset-btn" data-preset="ocean">
+                            <div class="preset-colors">
+                                <span style="background: #0ea5e9;"></span>
+                                <span style="background: #0284c7;"></span>
+                                <span style="background: #06b6d4;"></span>
+                            </div>
+                            <span>Ocean</span>
+                        </button>
+
+                        <button class="preset-btn" data-preset="sunset">
+                            <div class="preset-colors">
+                                <span style="background: #f97316;"></span>
+                                <span style="background: #ea580c;"></span>
+                                <span style="background: #fbbf24;"></span>
+                            </div>
+                            <span>Sunset</span>
+                        </button>
+
+                        <button class="preset-btn" data-preset="forest">
+                            <div class="preset-colors">
+                                <span style="background: #059669;"></span>
+                                <span style="background: #047857;"></span>
+                                <span style="background: #10b981;"></span>
+                            </div>
+                            <span>Forest</span>
+                        </button>
+
+                        <button class="preset-btn" data-preset="purple">
+                            <div class="preset-colors">
+                                <span style="background: #8b5cf6;"></span>
+                                <span style="background: #7c3aed;"></span>
+                                <span style="background: #a855f7;"></span>
+                            </div>
+                            <span>Purple</span>
+                        </button>
+
+                        <button class="preset-btn" data-preset="rose">
+                            <div class="preset-colors">
+                                <span style="background: #e11d48;"></span>
+                                <span style="background: #be185d;"></span>
+                                <span style="background: #f43f5e;"></span>
+                            </div>
+                            <span>Rose</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="color-actions">
+                    <button class="btn btn-secondary" id="resetColors">
+                        <i class="fas fa-undo"></i>
+                        Reset to Default
+                    </button>
+                    <button class="btn btn-primary" id="saveColors">
+                        <i class="fas fa-save"></i>
+                        Save Theme
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="control-buttons">
+            <button id="colorToggle" class="control-btn" title="Customize Colors">
+                <i class="fas fa-palette"></i>
+            </button>
+            <button id="soundToggle" class="control-btn" title="Toggle Sound">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
