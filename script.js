@@ -166,33 +166,58 @@ class TypingTest {
         // Sound toggle
         document.getElementById('soundToggle').addEventListener('click', () => this.toggleSound());
 
-        // Keyboard sound events
-        document.getElementById('keyboardSoundToggle').addEventListener('click', () => this.openSoundPanel());
-        document.getElementById('closeSoundPanel').addEventListener('click', () => this.closeSoundPanel());
-        document.getElementById('resetSounds').addEventListener('click', () => this.resetSounds());
-        document.getElementById('saveSounds').addEventListener('click', () => this.saveSounds());
+        // Keyboard sound events - use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            const keyboardToggle = document.getElementById('keyboardSoundToggle');
+            const closeSoundPanel = document.getElementById('closeSoundPanel');
+            const resetSounds = document.getElementById('resetSounds');
+            const saveSounds = document.getElementById('saveSounds');
 
-        // Sound preset events
-        document.querySelectorAll('.sound-preset').forEach(preset => {
-            preset.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('test-sound-btn')) {
-                    this.selectSoundPreset(preset.dataset.sound);
-                }
+            if (keyboardToggle) {
+                keyboardToggle.addEventListener('click', () => this.openSoundPanel());
+            }
+            if (closeSoundPanel) {
+                closeSoundPanel.addEventListener('click', () => this.closeSoundPanel());
+            }
+            if (resetSounds) {
+                resetSounds.addEventListener('click', () => this.resetSounds());
+            }
+            if (saveSounds) {
+                saveSounds.addEventListener('click', () => this.saveSounds());
+            }
+
+            // Sound preset events
+            document.querySelectorAll('.sound-preset').forEach(preset => {
+                preset.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('test-sound-btn')) {
+                        this.selectSoundPreset(preset.dataset.sound);
+                    }
+                });
             });
-        });
 
-        // Test sound buttons
-        document.querySelectorAll('.test-sound-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.testKeyboardSound(btn.dataset.sound);
+            // Test sound buttons
+            document.querySelectorAll('.test-sound-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.testKeyboardSound(btn.dataset.sound);
+                });
             });
-        });
 
-        // Sound settings
-        document.getElementById('volumeSlider').addEventListener('input', (e) => this.updateVolume(e.target.value));
-        document.getElementById('variationToggle').addEventListener('change', (e) => this.toggleVariation(e.target.checked));
-        document.getElementById('pitchSlider').addEventListener('input', (e) => this.updatePitchVariation(e.target.value));
+            // Sound settings
+            const volumeSlider = document.getElementById('volumeSlider');
+            const variationToggle = document.getElementById('variationToggle');
+            const pitchSlider = document.getElementById('pitchSlider');
+
+            if (volumeSlider) {
+                volumeSlider.addEventListener('input', (e) => this.updateVolume(e.target.value));
+            }
+            if (variationToggle) {
+                variationToggle.addEventListener('change', (e) => this.toggleVariation(e.target.checked));
+            }
+            if (pitchSlider) {
+                pitchSlider.addEventListener('input', (e) => this.updatePitchVariation(e.target.value));
+            }
+        }, 100);
 
         // Color customization events
         document.getElementById('colorToggle').addEventListener('click', () => this.openColorPanel());
@@ -225,6 +250,7 @@ class TypingTest {
             if (e.key === 'Escape') {
                 this.closeModal();
                 this.closeColorPanel();
+                this.closeSoundPanel();
             }
             if (e.ctrlKey && e.key === 'r') {
                 e.preventDefault();
@@ -233,6 +259,10 @@ class TypingTest {
             if (e.ctrlKey && e.key === 'p') {
                 e.preventDefault();
                 this.openColorPanel();
+            }
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                this.openSoundPanel();
             }
         });
     }
@@ -749,7 +779,14 @@ class TypingTest {
         try {
             // Create audio context if not exists
             if (!this.audioContext) {
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (window.AudioContext) {
+                    this.audioContext = new window.AudioContext();
+                } else if (window['webkitAudioContext']) {
+                    this.audioContext = new window['webkitAudioContext']();
+                } else {
+                    console.warn('Web Audio API not supported');
+                    return;
+                }
             }
 
             // Resume audio context if suspended (required by some browsers)
@@ -951,6 +988,12 @@ class TypingTest {
                     break;
                 case 'topre':
                     this.generateTopre(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+
+                default:
+                    // Fallback to Cherry MX Blue if unknown switch type
+                    console.warn('Unknown switch type:', this.keyboardSoundType);
+                    this.generateCherryMXBlue(now, baseVolume, pitchVariationAmount, isCorrect);
                     break;
             }
         } catch (error) {
@@ -1756,34 +1799,7 @@ class TypingTest {
         if (!isCorrect) this.addErrorNoise(startTime, volume * 0.3);
     }
 
-    generateLinearSound(startTime, volume, pitchVar, isCorrect) {
-        // Linear switch: Smooth, quiet sound
-        const freq = 1800 + (pitchVar * 250);
 
-        const osc = this.audioContext.createOscillator();
-        const gain = this.audioContext.createGain();
-        const filter = this.audioContext.createBiquadFilter();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, startTime);
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(2000, startTime);
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.audioContext.destination);
-
-        gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(volume * 0.5, startTime + 0.003);
-        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.06);
-
-        osc.start(startTime);
-        osc.stop(startTime + 0.06);
-
-        if (!isCorrect) {
-            this.addErrorNoise(startTime, volume * 0.3);
-        }
-    }
 
     addErrorNoise(startTime, volume) {
         // Add harsh noise for incorrect keystrokes
@@ -2121,17 +2137,29 @@ class TypingTest {
 
     // Sound Panel Management
     openSoundPanel() {
-        const soundPanel = document.getElementById('soundPanel');
-        if (soundPanel) {
-            soundPanel.classList.remove('hidden');
-            this.loadSoundSettings();
+        try {
+            const soundPanel = document.getElementById('soundPanel');
+            if (soundPanel) {
+                soundPanel.classList.remove('hidden');
+                this.loadSoundSettings();
+            } else {
+                console.warn('Sound panel element not found');
+            }
+        } catch (error) {
+            console.error('Error opening sound panel:', error);
         }
     }
 
     closeSoundPanel() {
-        const soundPanel = document.getElementById('soundPanel');
-        if (soundPanel) {
-            soundPanel.classList.add('hidden');
+        try {
+            const soundPanel = document.getElementById('soundPanel');
+            if (soundPanel) {
+                soundPanel.classList.add('hidden');
+            } else {
+                console.warn('Sound panel element not found');
+            }
+        } catch (error) {
+            console.error('Error closing sound panel:', error);
         }
     }
 
@@ -2139,31 +2167,51 @@ class TypingTest {
         // Load saved settings
         const savedSettings = this.getSavedSoundSettings();
 
-        this.keyboardSoundType = savedSettings.soundType || 'mechanical';
+        this.keyboardSoundType = savedSettings.soundType || 'cherry-mx-blue';
         this.soundVolume = savedSettings.volume || 0.5;
         this.soundVariation = savedSettings.variation !== undefined ? savedSettings.variation : true;
         this.pitchVariation = savedSettings.pitchVariation || 0.2;
 
-        // Update UI
-        document.querySelectorAll('.sound-preset').forEach(preset => {
-            preset.classList.remove('active');
-        });
+        // Update UI with error handling
+        try {
+            document.querySelectorAll('.sound-preset').forEach(preset => {
+                preset.classList.remove('active');
+            });
 
-        const activePreset = document.querySelector(`[data-sound="${this.keyboardSoundType}"]`);
-        if (activePreset) {
-            activePreset.classList.add('active');
+            const activePreset = document.querySelector(`[data-sound="${this.keyboardSoundType}"]`);
+            if (activePreset) {
+                activePreset.classList.add('active');
+            }
+
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeValue = document.getElementById('volumeValue');
+            const variationToggle = document.getElementById('variationToggle');
+            const pitchSlider = document.getElementById('pitchSlider');
+            const pitchValue = document.getElementById('pitchValue');
+
+            if (volumeSlider) {
+                volumeSlider.value = this.soundVolume * 100;
+            }
+            if (volumeValue) {
+                volumeValue.textContent = Math.round(this.soundVolume * 100) + '%';
+            }
+            if (variationToggle) {
+                variationToggle.checked = this.soundVariation;
+            }
+            if (pitchSlider) {
+                pitchSlider.value = this.pitchVariation * 100;
+            }
+            if (pitchValue) {
+                pitchValue.textContent = Math.round(this.pitchVariation * 100) + '%';
+            }
+        } catch (error) {
+            console.warn('Error updating sound settings UI:', error);
         }
-
-        document.getElementById('volumeSlider').value = this.soundVolume * 100;
-        document.getElementById('volumeValue').textContent = Math.round(this.soundVolume * 100) + '%';
-
-        document.getElementById('variationToggle').checked = this.soundVariation;
-
-        document.getElementById('pitchSlider').value = this.pitchVariation * 100;
-        document.getElementById('pitchValue').textContent = Math.round(this.pitchVariation * 100) + '%';
     }
 
     selectSoundPreset(soundType) {
+        if (!soundType) return;
+
         this.keyboardSoundType = soundType;
 
         // Update UI
@@ -2180,19 +2228,32 @@ class TypingTest {
         this.saveSoundSettings();
 
         // Play test sound
-        this.testKeyboardSound(soundType);
+        setTimeout(() => {
+            this.testKeyboardSound(soundType);
+        }, 100);
     }
 
     testKeyboardSound(soundType) {
+        if (!soundType || soundType === 'silent') return;
+
         const originalType = this.keyboardSoundType;
         this.keyboardSoundType = soundType;
-        this.playKeyboardSound(true);
+
+        try {
+            this.playKeyboardSound(true);
+        } catch (error) {
+            console.warn('Error testing keyboard sound:', error);
+        }
+
         this.keyboardSoundType = originalType;
     }
 
     updateVolume(value) {
         this.soundVolume = value / 100;
-        document.getElementById('volumeValue').textContent = value + '%';
+        const volumeValue = document.getElementById('volumeValue');
+        if (volumeValue) {
+            volumeValue.textContent = value + '%';
+        }
         this.saveSoundSettings();
     }
 
@@ -2203,7 +2264,10 @@ class TypingTest {
 
     updatePitchVariation(value) {
         this.pitchVariation = value / 100;
-        document.getElementById('pitchValue').textContent = value + '%';
+        const pitchValue = document.getElementById('pitchValue');
+        if (pitchValue) {
+            pitchValue.textContent = value + '%';
+        }
         this.saveSoundSettings();
     }
 

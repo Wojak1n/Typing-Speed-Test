@@ -2007,5 +2007,33 @@ input:checked + .toggle-slider:before {
     .pitch-control input[type="range"] {
         width: 100px;
     }
+
+    .sound-category h4 {
+        font-size: 0.9rem;
+    }
+
+    .sound-preset {
+        padding: 0.5rem;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .preset-info {
+        margin-top: 0.5rem;
+    }
+
+    .preset-name {
+        font-size: 0.85rem;
+    }
+
+    .preset-desc {
+        font-size: 0.7rem;
+    }
+
+    .test-sound-btn {
+        margin-top: 0.5rem;
+        width: 30px;
+        height: 30px;
+    }
 }
 }
