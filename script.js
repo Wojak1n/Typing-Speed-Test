@@ -15,6 +15,12 @@ class TypingTest {
         this.timeLeft = 60;
         this.testDuration = 60;
         this.soundEnabled = true;
+
+        // Keyboard sound settings
+        this.keyboardSoundType = 'cherry-mx-blue';
+        this.soundVolume = 0.5;
+        this.soundVariation = true;
+        this.pitchVariation = 0.2;
         
         // Game mode properties
         this.gameActive = false;
@@ -108,6 +114,7 @@ class TypingTest {
         this.createParticles();
         this.bindEvents();
         this.loadSavedColors();
+        this.loadSavedSoundSettings();
         this.updateDisplay();
         this.generateNewText();
     }
@@ -137,6 +144,9 @@ class TypingTest {
         document.getElementById('textInput').addEventListener('input', (e) => this.handleInput(e));
         document.getElementById('timeSelect').addEventListener('change', (e) => this.setTestDuration(e.target.value));
         document.getElementById('difficultySelect').addEventListener('change', () => this.generateNewText());
+
+        // Duration and difficulty card events
+        this.initializeCardSelectors();
         
         // Game mode events
         document.getElementById('startGameBtn').addEventListener('click', () => this.startGame());
@@ -155,6 +165,34 @@ class TypingTest {
         
         // Sound toggle
         document.getElementById('soundToggle').addEventListener('click', () => this.toggleSound());
+
+        // Keyboard sound events
+        document.getElementById('keyboardSoundToggle').addEventListener('click', () => this.openSoundPanel());
+        document.getElementById('closeSoundPanel').addEventListener('click', () => this.closeSoundPanel());
+        document.getElementById('resetSounds').addEventListener('click', () => this.resetSounds());
+        document.getElementById('saveSounds').addEventListener('click', () => this.saveSounds());
+
+        // Sound preset events
+        document.querySelectorAll('.sound-preset').forEach(preset => {
+            preset.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('test-sound-btn')) {
+                    this.selectSoundPreset(preset.dataset.sound);
+                }
+            });
+        });
+
+        // Test sound buttons
+        document.querySelectorAll('.test-sound-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.testKeyboardSound(btn.dataset.sound);
+            });
+        });
+
+        // Sound settings
+        document.getElementById('volumeSlider').addEventListener('input', (e) => this.updateVolume(e.target.value));
+        document.getElementById('variationToggle').addEventListener('change', (e) => this.toggleVariation(e.target.checked));
+        document.getElementById('pitchSlider').addEventListener('input', (e) => this.updatePitchVariation(e.target.value));
 
         // Color customization events
         document.getElementById('colorToggle').addEventListener('click', () => this.openColorPanel());
@@ -704,7 +742,7 @@ class TypingTest {
         }
     }
 
-    // Sound Effects
+    // Enhanced Sound Effects with Keyboard Sounds
     playSound(type) {
         if (!this.soundEnabled) return;
 
@@ -720,6 +758,12 @@ class TypingTest {
             }
         } catch (error) {
             console.warn('Audio context not supported:', error);
+            return;
+        }
+
+        // Handle keyboard sounds differently
+        if (type === 'correct' || type === 'error') {
+            this.playKeyboardSound(type === 'correct');
             return;
         }
 
@@ -841,6 +885,934 @@ class TypingTest {
             soundBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
             soundBtn.classList.add('muted');
         }
+    }
+
+    // Realistic Keyboard Sound Generation
+    playKeyboardSound(isCorrect = true) {
+        if (!this.soundEnabled || this.keyboardSoundType === 'silent') return;
+
+        try {
+            const now = this.audioContext.currentTime;
+            const baseVolume = this.soundVolume * (isCorrect ? 1 : 0.8);
+
+            // Add pitch variation if enabled
+            const pitchVariationAmount = this.soundVariation ?
+                (Math.random() - 0.5) * this.pitchVariation : 0;
+
+            // Cherry MX Switches
+            switch (this.keyboardSoundType) {
+                case 'cherry-mx-blue':
+                    this.generateCherryMXBlue(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'cherry-mx-brown':
+                    this.generateCherryMXBrown(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'cherry-mx-red':
+                    this.generateCherryMXRed(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'cherry-mx-black':
+                    this.generateCherryMXBlack(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'cherry-mx-clear':
+                    this.generateCherryMXClear(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+
+                // Gateron Switches
+                case 'gateron-blue':
+                    this.generateGateronBlue(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'gateron-brown':
+                    this.generateGateronBrown(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'gateron-red':
+                    this.generateGateronRed(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'gateron-yellow':
+                    this.generateGateronYellow(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+
+                // Kailh Switches
+                case 'kailh-box-white':
+                    this.generateKailhBoxWhite(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'kailh-box-brown':
+                    this.generateKailhBoxBrown(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'kailh-speed-silver':
+                    this.generateKailhSpeedSilver(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+
+                // Premium Switches
+                case 'holy-panda':
+                    this.generateHolyPanda(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'zealios-v2':
+                    this.generateZealiosV2(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+                case 'topre':
+                    this.generateTopre(now, baseVolume, pitchVariationAmount, isCorrect);
+                    break;
+            }
+        } catch (error) {
+            console.warn('Error playing keyboard sound:', error);
+        }
+    }
+
+    // === CHERRY MX SWITCHES ===
+
+    generateCherryMXBlue(startTime, volume, pitchVar, isCorrect) {
+        // Cherry MX Blue: Iconic clicky switch with sharp tactile bump and audible click
+        const clickFreq = 3200 + (pitchVar * 500); // Higher frequency for sharp click
+        const tactileFreq = 2400 + (pitchVar * 300);
+        const resonanceFreq = 1800 + (pitchVar * 200);
+
+        // Tactile bump (actuation point)
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        tactileOsc.type = 'square';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileOsc.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.6, startTime + 0.001);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.02);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.02);
+
+        // Sharp click (bottom out)
+        const clickOsc = this.audioContext.createOscillator();
+        const clickGain = this.audioContext.createGain();
+        const clickFilter = this.audioContext.createBiquadFilter();
+
+        clickOsc.type = 'square';
+        clickOsc.frequency.setValueAtTime(clickFreq, startTime + 0.015);
+        clickFilter.type = 'highpass';
+        clickFilter.frequency.setValueAtTime(2000, startTime + 0.015);
+
+        clickOsc.connect(clickFilter);
+        clickFilter.connect(clickGain);
+        clickGain.connect(this.audioContext.destination);
+
+        clickGain.gain.setValueAtTime(0, startTime + 0.015);
+        clickGain.gain.linearRampToValueAtTime(volume * 0.9, startTime + 0.016);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.06);
+
+        clickOsc.start(startTime + 0.015);
+        clickOsc.stop(startTime + 0.06);
+
+        // Resonance and spring return
+        const resOsc = this.audioContext.createOscillator();
+        const resGain = this.audioContext.createGain();
+        resOsc.type = 'sine';
+        resOsc.frequency.setValueAtTime(resonanceFreq, startTime + 0.02);
+        resOsc.connect(resGain);
+        resGain.connect(this.audioContext.destination);
+
+        resGain.gain.setValueAtTime(0, startTime + 0.02);
+        resGain.gain.linearRampToValueAtTime(volume * 0.4, startTime + 0.03);
+        resGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
+
+        resOsc.start(startTime + 0.02);
+        resOsc.stop(startTime + 0.12);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.6);
+    }
+
+    generateCherryMXBrown(startTime, volume, pitchVar, isCorrect) {
+        // Cherry MX Brown: Tactile but quiet, subtle bump without click
+        const tactileFreq = 2000 + (pitchVar * 250);
+        const bottomFreq = 1600 + (pitchVar * 200);
+
+        // Subtle tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        const tactileFilter = this.audioContext.createBiquadFilter();
+
+        tactileOsc.type = 'triangle';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileFilter.type = 'lowpass';
+        tactileFilter.frequency.setValueAtTime(2500, startTime);
+
+        tactileOsc.connect(tactileFilter);
+        tactileFilter.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.4, startTime + 0.003);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.03);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.03);
+
+        // Soft bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+        const bottomFilter = this.audioContext.createBiquadFilter();
+
+        bottomOsc.type = 'sine';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.02);
+        bottomFilter.type = 'lowpass';
+        bottomFilter.frequency.setValueAtTime(2000, startTime + 0.02);
+
+        bottomOsc.connect(bottomFilter);
+        bottomFilter.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.02);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.5, startTime + 0.025);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
+
+        bottomOsc.start(startTime + 0.02);
+        bottomOsc.stop(startTime + 0.08);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.3);
+    }
+
+    generateCherryMXRed(startTime, volume, pitchVar, isCorrect) {
+        // Cherry MX Red: Smooth linear, no tactile bump, quiet operation
+        const freq = 1400 + (pitchVar * 150);
+        const bottomFreq = 1200 + (pitchVar * 100);
+
+        // Smooth press
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1800, startTime);
+        filter.Q.setValueAtTime(1.5, startTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioContext.destination);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume * 0.3, startTime + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.06);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.06);
+
+        // Subtle bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+
+        bottomOsc.type = 'sine';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.03);
+        bottomOsc.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.03);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.2, startTime + 0.035);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.07);
+
+        bottomOsc.start(startTime + 0.03);
+        bottomOsc.stop(startTime + 0.07);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.2);
+    }
+
+    generateCherryMXBlack(startTime, volume, pitchVar, isCorrect) {
+        // Cherry MX Black: Heavy linear switch, deeper sound, more resistance
+        const freq = 1200 + (pitchVar * 120);
+        const bottomFreq = 1000 + (pitchVar * 80);
+
+        // Heavy press with deeper tone
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1600, startTime);
+        filter.Q.setValueAtTime(2, startTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioContext.destination);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume * 0.4, startTime + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.08);
+
+        // Heavier bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+
+        bottomOsc.type = 'triangle';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.04);
+        bottomOsc.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.04);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.3, startTime + 0.045);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.09);
+
+        bottomOsc.start(startTime + 0.04);
+        bottomOsc.stop(startTime + 0.09);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.25);
+    }
+
+    generateCherryMXClear(startTime, volume, pitchVar, isCorrect) {
+        // Cherry MX Clear: Heavy tactile switch, pronounced bump, stiffer spring
+        const tactileFreq = 2200 + (pitchVar * 280);
+        const bottomFreq = 1700 + (pitchVar * 180);
+
+        // Strong tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        const tactileFilter = this.audioContext.createBiquadFilter();
+
+        tactileOsc.type = 'square';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileFilter.type = 'bandpass';
+        tactileFilter.frequency.setValueAtTime(2200, startTime);
+        tactileFilter.Q.setValueAtTime(3, startTime);
+
+        tactileOsc.connect(tactileFilter);
+        tactileFilter.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.7, startTime + 0.002);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.025);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.025);
+
+        // Heavy bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+        const bottomFilter = this.audioContext.createBiquadFilter();
+
+        bottomOsc.type = 'triangle';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.025);
+        bottomFilter.type = 'lowpass';
+        bottomFilter.frequency.setValueAtTime(2200, startTime + 0.025);
+
+        bottomOsc.connect(bottomFilter);
+        bottomFilter.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.025);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.6, startTime + 0.03);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.09);
+
+        bottomOsc.start(startTime + 0.025);
+        bottomOsc.stop(startTime + 0.09);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.4);
+    }
+
+    // === GATERON SWITCHES ===
+
+    generateGateronBlue(startTime, volume, pitchVar, isCorrect) {
+        // Gateron Blue: Smoother than Cherry MX Blue, slightly different click profile
+        const clickFreq = 3100 + (pitchVar * 450);
+        const tactileFreq = 2300 + (pitchVar * 280);
+        const resonanceFreq = 1700 + (pitchVar * 180);
+
+        // Smoother tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        tactileOsc.type = 'triangle';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileOsc.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.5, startTime + 0.002);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.025);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.025);
+
+        // Crisp click
+        const clickOsc = this.audioContext.createOscillator();
+        const clickGain = this.audioContext.createGain();
+        const clickFilter = this.audioContext.createBiquadFilter();
+
+        clickOsc.type = 'square';
+        clickOsc.frequency.setValueAtTime(clickFreq, startTime + 0.018);
+        clickFilter.type = 'highpass';
+        clickFilter.frequency.setValueAtTime(1800, startTime + 0.018);
+
+        clickOsc.connect(clickFilter);
+        clickFilter.connect(clickGain);
+        clickGain.connect(this.audioContext.destination);
+
+        clickGain.gain.setValueAtTime(0, startTime + 0.018);
+        clickGain.gain.linearRampToValueAtTime(volume * 0.8, startTime + 0.019);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.055);
+
+        clickOsc.start(startTime + 0.018);
+        clickOsc.stop(startTime + 0.055);
+
+        // Smooth resonance
+        const resOsc = this.audioContext.createOscillator();
+        const resGain = this.audioContext.createGain();
+        resOsc.type = 'sine';
+        resOsc.frequency.setValueAtTime(resonanceFreq, startTime + 0.025);
+        resOsc.connect(resGain);
+        resGain.connect(this.audioContext.destination);
+
+        resGain.gain.setValueAtTime(0, startTime + 0.025);
+        resGain.gain.linearRampToValueAtTime(volume * 0.35, startTime + 0.035);
+        resGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.11);
+
+        resOsc.start(startTime + 0.025);
+        resOsc.stop(startTime + 0.11);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.5);
+    }
+
+    generateGateronBrown(startTime, volume, pitchVar, isCorrect) {
+        // Gateron Brown: Smoother tactile bump than Cherry MX Brown
+        const tactileFreq = 1950 + (pitchVar * 230);
+        const bottomFreq = 1550 + (pitchVar * 180);
+
+        // Smooth tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        const tactileFilter = this.audioContext.createBiquadFilter();
+
+        tactileOsc.type = 'sine';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileFilter.type = 'lowpass';
+        tactileFilter.frequency.setValueAtTime(2800, startTime);
+        tactileFilter.Q.setValueAtTime(1.2, startTime);
+
+        tactileOsc.connect(tactileFilter);
+        tactileFilter.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.35, startTime + 0.004);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.035);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.035);
+
+        // Smooth bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+        const bottomFilter = this.audioContext.createBiquadFilter();
+
+        bottomOsc.type = 'sine';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.022);
+        bottomFilter.type = 'lowpass';
+        bottomFilter.frequency.setValueAtTime(2200, startTime + 0.022);
+
+        bottomOsc.connect(bottomFilter);
+        bottomFilter.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.022);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.45, startTime + 0.027);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.075);
+
+        bottomOsc.start(startTime + 0.022);
+        bottomOsc.stop(startTime + 0.075);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.25);
+    }
+
+    generateGateronRed(startTime, volume, pitchVar, isCorrect) {
+        // Gateron Red: Buttery smooth linear, even smoother than Cherry MX Red
+        const freq = 1350 + (pitchVar * 140);
+        const bottomFreq = 1150 + (pitchVar * 90);
+
+        // Ultra-smooth press
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1900, startTime);
+        filter.Q.setValueAtTime(1.2, startTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioContext.destination);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume * 0.25, startTime + 0.006);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.055);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.055);
+
+        // Very subtle bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+
+        bottomOsc.type = 'sine';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.035);
+        bottomOsc.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.035);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.15, startTime + 0.04);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.065);
+
+        bottomOsc.start(startTime + 0.035);
+        bottomOsc.stop(startTime + 0.065);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.15);
+    }
+
+    generateGateronYellow(startTime, volume, pitchVar, isCorrect) {
+        // Gateron Yellow: Popular linear switch, slightly heavier than Red
+        const freq = 1300 + (pitchVar * 130);
+        const bottomFreq = 1100 + (pitchVar * 85);
+
+        // Smooth but slightly more substantial press
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1850, startTime);
+        filter.Q.setValueAtTime(1.4, startTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioContext.destination);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume * 0.3, startTime + 0.007);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.06);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.06);
+
+        // Slightly more pronounced bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+
+        bottomOsc.type = 'triangle';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.038);
+        bottomOsc.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.038);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.2, startTime + 0.043);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.07);
+
+        bottomOsc.start(startTime + 0.038);
+        bottomOsc.stop(startTime + 0.07);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.18);
+    }
+
+    // === KAILH SWITCHES ===
+
+    generateKailhBoxWhite(startTime, volume, pitchVar, isCorrect) {
+        // Kailh Box White: Crisp, sharp click with box stem design
+        const clickFreq = 3400 + (pitchVar * 520);
+        const tactileFreq = 2600 + (pitchVar * 320);
+        const resonanceFreq = 1900 + (pitchVar * 220);
+
+        // Sharp tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        const tactileFilter = this.audioContext.createBiquadFilter();
+
+        tactileOsc.type = 'square';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileFilter.type = 'highpass';
+        tactileFilter.frequency.setValueAtTime(2000, startTime);
+
+        tactileOsc.connect(tactileFilter);
+        tactileFilter.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.65, startTime + 0.001);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.018);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.018);
+
+        // Crisp click
+        const clickOsc = this.audioContext.createOscillator();
+        const clickGain = this.audioContext.createGain();
+        const clickFilter = this.audioContext.createBiquadFilter();
+
+        clickOsc.type = 'square';
+        clickOsc.frequency.setValueAtTime(clickFreq, startTime + 0.012);
+        clickFilter.type = 'highpass';
+        clickFilter.frequency.setValueAtTime(2200, startTime + 0.012);
+
+        clickOsc.connect(clickFilter);
+        clickFilter.connect(clickGain);
+        clickGain.connect(this.audioContext.destination);
+
+        clickGain.gain.setValueAtTime(0, startTime + 0.012);
+        clickGain.gain.linearRampToValueAtTime(volume * 0.95, startTime + 0.013);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.045);
+
+        clickOsc.start(startTime + 0.012);
+        clickOsc.stop(startTime + 0.045);
+
+        // Clean resonance
+        const resOsc = this.audioContext.createOscillator();
+        const resGain = this.audioContext.createGain();
+        resOsc.type = 'sine';
+        resOsc.frequency.setValueAtTime(resonanceFreq, startTime + 0.02);
+        resOsc.connect(resGain);
+        resGain.connect(this.audioContext.destination);
+
+        resGain.gain.setValueAtTime(0, startTime + 0.02);
+        resGain.gain.linearRampToValueAtTime(volume * 0.3, startTime + 0.025);
+        resGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
+
+        resOsc.start(startTime + 0.02);
+        resOsc.stop(startTime + 0.08);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.55);
+    }
+
+    generateKailhBoxBrown(startTime, volume, pitchVar, isCorrect) {
+        // Kailh Box Brown: Stable tactile with box stem, more pronounced than regular browns
+        const tactileFreq = 2100 + (pitchVar * 260);
+        const bottomFreq = 1650 + (pitchVar * 190);
+
+        // Stable tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        const tactileFilter = this.audioContext.createBiquadFilter();
+
+        tactileOsc.type = 'triangle';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileFilter.type = 'bandpass';
+        tactileFilter.frequency.setValueAtTime(2100, startTime);
+        tactileFilter.Q.setValueAtTime(2, startTime);
+
+        tactileOsc.connect(tactileFilter);
+        tactileFilter.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.5, startTime + 0.003);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.03);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.03);
+
+        // Stable bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+        const bottomFilter = this.audioContext.createBiquadFilter();
+
+        bottomOsc.type = 'sine';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.025);
+        bottomFilter.type = 'lowpass';
+        bottomFilter.frequency.setValueAtTime(2300, startTime + 0.025);
+
+        bottomOsc.connect(bottomFilter);
+        bottomFilter.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.025);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.55, startTime + 0.03);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
+
+        bottomOsc.start(startTime + 0.025);
+        bottomOsc.stop(startTime + 0.08);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.35);
+    }
+
+    generateKailhSpeedSilver(startTime, volume, pitchVar, isCorrect) {
+        // Kailh Speed Silver: Ultra-fast linear switch, short travel, gaming-focused
+        const freq = 1500 + (pitchVar * 160);
+        const bottomFreq = 1300 + (pitchVar * 110);
+
+        // Quick, snappy press
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2100, startTime);
+        filter.Q.setValueAtTime(1.8, startTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioContext.destination);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume * 0.35, startTime + 0.003);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.04);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.04);
+
+        // Quick bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+
+        bottomOsc.type = 'triangle';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.025);
+        bottomOsc.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.025);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.25, startTime + 0.028);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.05);
+
+        bottomOsc.start(startTime + 0.025);
+        bottomOsc.stop(startTime + 0.05);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.2);
+    }
+
+    // === PREMIUM SWITCHES ===
+
+    generateHolyPanda(startTime, volume, pitchVar, isCorrect) {
+        // Holy Panda: Deep, thocky tactile switch with pronounced bump
+        const tactileFreq = 1800 + (pitchVar * 220);
+        const thockFreq = 1200 + (pitchVar * 150);
+        const resonanceFreq = 900 + (pitchVar * 100);
+
+        // Deep tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        const tactileFilter = this.audioContext.createBiquadFilter();
+
+        tactileOsc.type = 'square';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileFilter.type = 'lowpass';
+        tactileFilter.frequency.setValueAtTime(2500, startTime);
+        tactileFilter.Q.setValueAtTime(2.5, startTime);
+
+        tactileOsc.connect(tactileFilter);
+        tactileFilter.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.7, startTime + 0.004);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.04);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.04);
+
+        // Deep thock
+        const thockOsc = this.audioContext.createOscillator();
+        const thockGain = this.audioContext.createGain();
+        const thockFilter = this.audioContext.createBiquadFilter();
+
+        thockOsc.type = 'triangle';
+        thockOsc.frequency.setValueAtTime(thockFreq, startTime + 0.03);
+        thockFilter.type = 'lowpass';
+        thockFilter.frequency.setValueAtTime(1800, startTime + 0.03);
+        thockFilter.Q.setValueAtTime(3, startTime + 0.03);
+
+        thockOsc.connect(thockFilter);
+        thockFilter.connect(thockGain);
+        thockGain.connect(this.audioContext.destination);
+
+        thockGain.gain.setValueAtTime(0, startTime + 0.03);
+        thockGain.gain.linearRampToValueAtTime(volume * 0.8, startTime + 0.035);
+        thockGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
+
+        thockOsc.start(startTime + 0.03);
+        thockOsc.stop(startTime + 0.12);
+
+        // Deep resonance
+        const resOsc = this.audioContext.createOscillator();
+        const resGain = this.audioContext.createGain();
+        resOsc.type = 'sine';
+        resOsc.frequency.setValueAtTime(resonanceFreq, startTime + 0.04);
+        resOsc.connect(resGain);
+        resGain.connect(this.audioContext.destination);
+
+        resGain.gain.setValueAtTime(0, startTime + 0.04);
+        resGain.gain.linearRampToValueAtTime(volume * 0.4, startTime + 0.06);
+        resGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+
+        resOsc.start(startTime + 0.04);
+        resOsc.stop(startTime + 0.15);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.5);
+    }
+
+    generateZealiosV2(startTime, volume, pitchVar, isCorrect) {
+        // Zealios V2: Sharp, pronounced tactile bump with clean sound
+        const tactileFreq = 2300 + (pitchVar * 300);
+        const bottomFreq = 1700 + (pitchVar * 200);
+
+        // Sharp tactile bump
+        const tactileOsc = this.audioContext.createOscillator();
+        const tactileGain = this.audioContext.createGain();
+        const tactileFilter = this.audioContext.createBiquadFilter();
+
+        tactileOsc.type = 'square';
+        tactileOsc.frequency.setValueAtTime(tactileFreq, startTime);
+        tactileFilter.type = 'bandpass';
+        tactileFilter.frequency.setValueAtTime(2300, startTime);
+        tactileFilter.Q.setValueAtTime(4, startTime);
+
+        tactileOsc.connect(tactileFilter);
+        tactileFilter.connect(tactileGain);
+        tactileGain.connect(this.audioContext.destination);
+
+        tactileGain.gain.setValueAtTime(0, startTime);
+        tactileGain.gain.linearRampToValueAtTime(volume * 0.8, startTime + 0.002);
+        tactileGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.02);
+
+        tactileOsc.start(startTime);
+        tactileOsc.stop(startTime + 0.02);
+
+        // Clean bottom out
+        const bottomOsc = this.audioContext.createOscillator();
+        const bottomGain = this.audioContext.createGain();
+        const bottomFilter = this.audioContext.createBiquadFilter();
+
+        bottomOsc.type = 'triangle';
+        bottomOsc.frequency.setValueAtTime(bottomFreq, startTime + 0.025);
+        bottomFilter.type = 'lowpass';
+        bottomFilter.frequency.setValueAtTime(2500, startTime + 0.025);
+
+        bottomOsc.connect(bottomFilter);
+        bottomFilter.connect(bottomGain);
+        bottomGain.connect(this.audioContext.destination);
+
+        bottomGain.gain.setValueAtTime(0, startTime + 0.025);
+        bottomGain.gain.linearRampToValueAtTime(volume * 0.6, startTime + 0.03);
+        bottomGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.085);
+
+        bottomOsc.start(startTime + 0.025);
+        bottomOsc.stop(startTime + 0.085);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.4);
+    }
+
+    generateTopre(startTime, volume, pitchVar, isCorrect) {
+        // Topre: Electro-capacitive switch with unique thock sound
+        const thockFreq = 1100 + (pitchVar * 130);
+        const capacitiveFreq = 800 + (pitchVar * 80);
+
+        // Capacitive activation
+        const capOsc = this.audioContext.createOscillator();
+        const capGain = this.audioContext.createGain();
+        const capFilter = this.audioContext.createBiquadFilter();
+
+        capOsc.type = 'sine';
+        capOsc.frequency.setValueAtTime(capacitiveFreq, startTime);
+        capFilter.type = 'lowpass';
+        capFilter.frequency.setValueAtTime(1200, startTime);
+        capFilter.Q.setValueAtTime(2, startTime);
+
+        capOsc.connect(capFilter);
+        capFilter.connect(capGain);
+        capGain.connect(this.audioContext.destination);
+
+        capGain.gain.setValueAtTime(0, startTime);
+        capGain.gain.linearRampToValueAtTime(volume * 0.3, startTime + 0.008);
+        capGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.05);
+
+        capOsc.start(startTime);
+        capOsc.stop(startTime + 0.05);
+
+        // Signature thock
+        const thockOsc = this.audioContext.createOscillator();
+        const thockGain = this.audioContext.createGain();
+        const thockFilter = this.audioContext.createBiquadFilter();
+
+        thockOsc.type = 'triangle';
+        thockOsc.frequency.setValueAtTime(thockFreq, startTime + 0.04);
+        thockFilter.type = 'lowpass';
+        thockFilter.frequency.setValueAtTime(1600, startTime + 0.04);
+        thockFilter.Q.setValueAtTime(3.5, startTime + 0.04);
+
+        thockOsc.connect(thockFilter);
+        thockFilter.connect(thockGain);
+        thockGain.connect(this.audioContext.destination);
+
+        thockGain.gain.setValueAtTime(0, startTime + 0.04);
+        thockGain.gain.linearRampToValueAtTime(volume * 0.9, startTime + 0.045);
+        thockGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+
+        thockOsc.start(startTime + 0.04);
+        thockOsc.stop(startTime + 0.15);
+
+        if (!isCorrect) this.addErrorNoise(startTime, volume * 0.3);
+    }
+
+    generateLinearSound(startTime, volume, pitchVar, isCorrect) {
+        // Linear switch: Smooth, quiet sound
+        const freq = 1800 + (pitchVar * 250);
+
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2000, startTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioContext.destination);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume * 0.5, startTime + 0.003);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.06);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.06);
+
+        if (!isCorrect) {
+            this.addErrorNoise(startTime, volume * 0.3);
+        }
+    }
+
+    addErrorNoise(startTime, volume) {
+        // Add harsh noise for incorrect keystrokes
+        const noiseBuffer = this.audioContext.createBuffer(1, 1024, this.audioContext.sampleRate);
+        const noiseData = noiseBuffer.getChannelData(0);
+
+        for (let i = 0; i < 1024; i++) {
+            noiseData[i] = (Math.random() - 0.5) * 2;
+        }
+
+        const noiseSource = this.audioContext.createBufferSource();
+        const noiseGain = this.audioContext.createGain();
+        const noiseFilter = this.audioContext.createBiquadFilter();
+
+        noiseSource.buffer = noiseBuffer;
+        noiseSource.loop = true;
+        noiseFilter.type = 'highpass';
+        noiseFilter.frequency.setValueAtTime(2000, startTime);
+
+        noiseSource.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(this.audioContext.destination);
+
+        noiseGain.gain.setValueAtTime(0, startTime);
+        noiseGain.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.1);
+
+        noiseSource.start(startTime);
+        noiseSource.stop(startTime + 0.1);
     }
 
     // Color Customization Methods
@@ -1145,6 +2117,340 @@ class TypingTest {
         if (swatch) {
             swatch.style.backgroundColor = color;
         }
+    }
+
+    // Sound Panel Management
+    openSoundPanel() {
+        const soundPanel = document.getElementById('soundPanel');
+        if (soundPanel) {
+            soundPanel.classList.remove('hidden');
+            this.loadSoundSettings();
+        }
+    }
+
+    closeSoundPanel() {
+        const soundPanel = document.getElementById('soundPanel');
+        if (soundPanel) {
+            soundPanel.classList.add('hidden');
+        }
+    }
+
+    loadSoundSettings() {
+        // Load saved settings
+        const savedSettings = this.getSavedSoundSettings();
+
+        this.keyboardSoundType = savedSettings.soundType || 'mechanical';
+        this.soundVolume = savedSettings.volume || 0.5;
+        this.soundVariation = savedSettings.variation !== undefined ? savedSettings.variation : true;
+        this.pitchVariation = savedSettings.pitchVariation || 0.2;
+
+        // Update UI
+        document.querySelectorAll('.sound-preset').forEach(preset => {
+            preset.classList.remove('active');
+        });
+
+        const activePreset = document.querySelector(`[data-sound="${this.keyboardSoundType}"]`);
+        if (activePreset) {
+            activePreset.classList.add('active');
+        }
+
+        document.getElementById('volumeSlider').value = this.soundVolume * 100;
+        document.getElementById('volumeValue').textContent = Math.round(this.soundVolume * 100) + '%';
+
+        document.getElementById('variationToggle').checked = this.soundVariation;
+
+        document.getElementById('pitchSlider').value = this.pitchVariation * 100;
+        document.getElementById('pitchValue').textContent = Math.round(this.pitchVariation * 100) + '%';
+    }
+
+    selectSoundPreset(soundType) {
+        this.keyboardSoundType = soundType;
+
+        // Update UI
+        document.querySelectorAll('.sound-preset').forEach(preset => {
+            preset.classList.remove('active');
+        });
+
+        const selectedPreset = document.querySelector(`[data-sound="${soundType}"]`);
+        if (selectedPreset) {
+            selectedPreset.classList.add('active');
+        }
+
+        // Save setting
+        this.saveSoundSettings();
+
+        // Play test sound
+        this.testKeyboardSound(soundType);
+    }
+
+    testKeyboardSound(soundType) {
+        const originalType = this.keyboardSoundType;
+        this.keyboardSoundType = soundType;
+        this.playKeyboardSound(true);
+        this.keyboardSoundType = originalType;
+    }
+
+    updateVolume(value) {
+        this.soundVolume = value / 100;
+        document.getElementById('volumeValue').textContent = value + '%';
+        this.saveSoundSettings();
+    }
+
+    toggleVariation(enabled) {
+        this.soundVariation = enabled;
+        this.saveSoundSettings();
+    }
+
+    updatePitchVariation(value) {
+        this.pitchVariation = value / 100;
+        document.getElementById('pitchValue').textContent = value + '%';
+        this.saveSoundSettings();
+    }
+
+    resetSounds() {
+        this.keyboardSoundType = 'cherry-mx-blue';
+        this.soundVolume = 0.5;
+        this.soundVariation = true;
+        this.pitchVariation = 0.2;
+
+        this.loadSoundSettings();
+        this.saveSoundSettings();
+        this.playSound('start');
+    }
+
+    saveSounds() {
+        this.saveSoundSettings();
+        this.playSound('complete');
+
+        // Show confirmation
+        const saveBtn = document.getElementById('saveSounds');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+        saveBtn.disabled = true;
+
+        setTimeout(() => {
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        }, 2000);
+    }
+
+    saveSoundSettings() {
+        const settings = {
+            soundType: this.keyboardSoundType,
+            volume: this.soundVolume,
+            variation: this.soundVariation,
+            pitchVariation: this.pitchVariation
+        };
+
+        localStorage.setItem('typingTestSoundSettings', JSON.stringify(settings));
+    }
+
+    getSavedSoundSettings() {
+        try {
+            return JSON.parse(localStorage.getItem('typingTestSoundSettings')) || {};
+        } catch {
+            return {};
+        }
+    }
+
+    loadSavedSoundSettings() {
+        const savedSettings = this.getSavedSoundSettings();
+
+        this.keyboardSoundType = savedSettings.soundType || 'cherry-mx-blue';
+        this.soundVolume = savedSettings.volume || 0.5;
+        this.soundVariation = savedSettings.variation !== undefined ? savedSettings.variation : true;
+        this.pitchVariation = savedSettings.pitchVariation || 0.2;
+    }
+
+    // Card Selector Methods
+    initializeCardSelectors() {
+        // Duration cards
+        document.querySelectorAll('.duration-card').forEach(card => {
+            card.addEventListener('click', (e) => this.selectDurationCard(e.currentTarget));
+            card.addEventListener('dragstart', (e) => this.handleCardDragStart(e, 'duration'));
+            card.addEventListener('dragend', (e) => this.handleCardDragEnd(e));
+        });
+
+        // Difficulty cards
+        document.querySelectorAll('.difficulty-card').forEach(card => {
+            card.addEventListener('click', (e) => this.selectDifficultyCard(e.currentTarget));
+            card.addEventListener('dragstart', (e) => this.handleCardDragStart(e, 'difficulty'));
+            card.addEventListener('dragend', (e) => this.handleCardDragEnd(e));
+        });
+
+        // Add drop zones for card swapping
+        this.createCardDropZones();
+    }
+
+    selectDurationCard(selectedCard) {
+        // Remove active class from all duration cards
+        document.querySelectorAll('.duration-card').forEach(card => {
+            card.classList.remove('active');
+        });
+
+        // Add active class to selected card
+        selectedCard.classList.add('active');
+
+        // Update the hidden select and trigger change
+        const duration = selectedCard.dataset.duration;
+        const select = document.getElementById('timeSelect');
+        select.value = duration;
+        this.setTestDuration(duration);
+
+        // Play sound and add animation
+        this.playSound('correct');
+        this.animateCardSelection(selectedCard);
+    }
+
+    selectDifficultyCard(selectedCard) {
+        // Remove active class from all difficulty cards
+        document.querySelectorAll('.difficulty-card').forEach(card => {
+            card.classList.remove('active');
+        });
+
+        // Add active class to selected card
+        selectedCard.classList.add('active');
+
+        // Update the hidden select and trigger change
+        const difficulty = selectedCard.dataset.difficulty;
+        const select = document.getElementById('difficultySelect');
+        select.value = difficulty;
+        this.generateNewText();
+
+        // Play sound and add animation
+        this.playSound('correct');
+        this.animateCardSelection(selectedCard);
+    }
+
+    animateCardSelection(card) {
+        // Add selection animation
+        card.style.transform = 'scale(1.1)';
+        card.style.transition = 'transform 0.2s ease';
+
+        setTimeout(() => {
+            card.style.transform = '';
+            card.style.transition = '';
+        }, 200);
+
+        // Add ripple effect
+        const ripple = document.createElement('div');
+        ripple.className = 'selection-ripple';
+        card.appendChild(ripple);
+
+        setTimeout(() => {
+            if (ripple.parentNode) {
+                ripple.parentNode.removeChild(ripple);
+            }
+        }, 600);
+    }
+
+    handleCardDragStart(e, cardType) {
+        const card = e.currentTarget;
+        const value = cardType === 'duration' ? card.dataset.duration : card.dataset.difficulty;
+
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+            type: 'card-swap',
+            cardType: cardType,
+            value: value,
+            sourceElement: card.outerHTML
+        }));
+
+        card.classList.add('dragging');
+        document.body.classList.add('card-drag-active');
+
+        // Show compatible drop zones
+        document.querySelectorAll(`.${cardType}-card:not(.dragging)`).forEach(dropCard => {
+            dropCard.classList.add('drop-target');
+        });
+
+        this.playSound('correct');
+    }
+
+    handleCardDragEnd(e) {
+        e.currentTarget.classList.remove('dragging');
+        document.body.classList.remove('card-drag-active');
+
+        // Remove drop target indicators
+        document.querySelectorAll('.drop-target').forEach(card => {
+            card.classList.remove('drop-target');
+        });
+    }
+
+    createCardDropZones() {
+        // Add drop functionality to cards
+        document.querySelectorAll('.duration-card, .difficulty-card').forEach(card => {
+            card.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            card.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                if (card.classList.contains('drop-target')) {
+                    card.classList.add('drag-over');
+                }
+            });
+
+            card.addEventListener('dragleave', (e) => {
+                if (!card.contains(e.relatedTarget)) {
+                    card.classList.remove('drag-over');
+                }
+            });
+
+            card.addEventListener('drop', (e) => {
+                e.preventDefault();
+                this.handleCardDrop(e, card);
+            });
+        });
+    }
+
+    handleCardDrop(e, dropTarget) {
+        try {
+            const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+            if (dragData.type === 'card-swap') {
+                const sourceCard = document.querySelector(`.${dragData.cardType}-card.dragging`);
+
+                if (sourceCard && dropTarget.classList.contains(`${dragData.cardType}-card`)) {
+                    // Swap the positions visually with animation
+                    this.swapCards(sourceCard, dropTarget);
+                    this.playSound('match');
+                }
+            }
+        } catch (error) {
+            console.warn('Error handling card drop:', error);
+            this.playSound('error');
+        }
+
+        dropTarget.classList.remove('drag-over');
+    }
+
+    swapCards(card1, card2) {
+        // Create temporary placeholders
+        const temp1 = document.createElement('div');
+        const temp2 = document.createElement('div');
+
+        // Insert placeholders
+        card1.parentNode.insertBefore(temp1, card1);
+        card2.parentNode.insertBefore(temp2, card2);
+
+        // Add swap animation
+        card1.style.transform = 'scale(0.8) rotate(10deg)';
+        card2.style.transform = 'scale(0.8) rotate(-10deg)';
+
+        setTimeout(() => {
+            // Swap positions
+            temp1.parentNode.insertBefore(card2, temp1);
+            temp2.parentNode.insertBefore(card1, temp2);
+
+            // Remove placeholders
+            temp1.remove();
+            temp2.remove();
+
+            // Reset transforms
+            card1.style.transform = '';
+            card2.style.transform = '';
+        }, 300);
     }
 }
 
